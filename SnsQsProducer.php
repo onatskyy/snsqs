@@ -43,7 +43,7 @@ class SnsQsProducer implements Producer
     }
 
     /**
-     * @param SnsQsTopic   $destination
+     * @param SnsQsTopic $destination
      * @param SnsQsMessage $message
      */
     public function send(Destination $destination, Message $message): void
@@ -51,11 +51,14 @@ class SnsQsProducer implements Producer
         InvalidMessageException::assertMessageInstanceOf($message, SnsQsMessage::class);
 
         if (false == $destination instanceof SnsQsTopic && false == $destination instanceof SnsQsQueue) {
-            throw new InvalidDestinationException(sprintf(
-                'The destination must be an instance of [%s|%s] but got %s.',
-                SnsQsTopic::class, SnsQsQueue::class,
-                is_object($destination) ? get_class($destination) : gettype($destination)
-            ));
+            throw new InvalidDestinationException(
+                sprintf(
+                    'The destination must be an instance of [%s|%s] but got %s.',
+                    SnsQsTopic::class,
+                    SnsQsQueue::class,
+                    is_object($destination) ? get_class($destination) : gettype($destination)
+                )
+            );
         }
 
         if ($destination instanceof SnsQsTopic) {
@@ -64,6 +67,7 @@ class SnsQsProducer implements Producer
                 $message->getProperties(),
                 $message->getHeaders()
             );
+            $snsMessage->setMessageAttributes($message->getMessageAttributes());
 
             $this->getSnsProducer()->send($destination, $snsMessage);
         } else {
@@ -79,10 +83,6 @@ class SnsQsProducer implements Producer
 
     /**
      * Delivery delay is supported by SQSProducer.
-     *
-     * @param int|null $deliveryDelay
-     *
-     * @return Producer
      */
     public function setDeliveryDelay(int $deliveryDelay = null): Producer
     {
@@ -93,8 +93,6 @@ class SnsQsProducer implements Producer
 
     /**
      * Delivery delay is supported by SQSProducer.
-     *
-     * @return int|null
      */
     public function getDeliveryDelay(): ?int
     {
